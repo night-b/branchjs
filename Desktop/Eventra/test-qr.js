@@ -4,7 +4,6 @@ if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'my_temporary_test_secret_key';
 }
 
-const fs = require('fs');
 const { generateTicketQRCode, validateQRChecksum } = require('./utils/qrCode');
 
 async function runQRTest() {
@@ -13,17 +12,18 @@ async function runQRTest() {
   const dummyTicketId = '123e4567-e89b-12d3-a456-426614174000';
   const dummyEventId = '987f6543-e21b-32d1-a456-426614174000';
 
-  console.log('1. Generating QR code...');
-  const qrResult = await generateTicketQRCode(dummyTicketId, dummyEventId);
+  console.log('1. Generating QR code and saving image...');
+  
+  // ---> PASSING THE FILENAME AS THE 3RD ARGUMENT HERE <---
+  const qrResult = await generateTicketQRCode(
+    dummyTicketId, 
+    dummyEventId, 
+    'my-custom-ticket-code.png'
+  );
+
   console.log('-> Generated Content string:', qrResult.content);
   console.log('-> Generated Data URL length:', qrResult.dataUrl.length);
-
-  // --- SAVE THE QR CODE AS A PHYSICAL IMAGE ---
-  // The dataUrl looks like "data:image/png;base64,iVBORw0KGgo..."
-  // We need to strip the prefix and convert the base64 string into binary data
-  const base64Data = qrResult.dataUrl.replace(/^data:image\/png;base64,/, '');
-  fs.writeFileSync('test-ticket-qr.png', base64Data, 'base64');
-  console.log('-> Saved QR code image as "test-ticket-qr.png" in your project folder!');
+  console.log('-> Image automatically saved to disk!');
 
   console.log('\n2. Validating genuine QR content...');
   const isValid = validateQRChecksum(qrResult.content);
